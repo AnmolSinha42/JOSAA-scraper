@@ -1,5 +1,6 @@
 import requests, os
 from bs4 import BeautifulSoup
+import pandas as pd
 
 
 # get params
@@ -55,10 +56,12 @@ def explore_field(index, post_data, soup):
     post_data.update(hidden_params)
     
     if index == len(field_data) - 1:  # if we have reached the last field, return
-        print("Reached the last field, exiting recursion.")
-        os.makedirs(f"data/{post_data['ctl00$ContentPlaceHolder1$ddlInstype']}", exist_ok=True)
-        with open(f"data/{post_data['ctl00$ContentPlaceHolder1$ddlInstype']}/{post_data['ctl00$ContentPlaceHolder1$ddlInstitute']}.html", "w", encoding="utf-8") as f:
-            f.write(soup.prettify() if soup else "No soup provided")
+        table = soup.find("table")
+        table = pd.read_html(str(table))[0]
+        # delete last row from the table if it is empty
+        table.dropna(inplace=True, how='all')
+        with open('hhhhhh.csv', 'a', encoding='utf-8') as f:
+            table.to_csv(f, index=False, header=False, mode='a')
         return
     
     if field_data[index + 1][1] == "explore": # if the next field's data has a list of items to explore
