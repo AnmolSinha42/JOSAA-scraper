@@ -2,6 +2,7 @@ import requests, os
 from bs4 import BeautifulSoup
 import pandas as pd
 
+# this file is used to scrape the opening and closing ranks of JOSAA 2024 website to also get NIT, IIIT, GFTI's opening and closing ranks
 
 # get params
 session = requests.Session()
@@ -20,7 +21,7 @@ field_data = ( # like immutable dict so order is preserved
     ("ctl00$ContentPlaceHolder1$btnSubmit", "Submit")
 )
 
-
+# the following code was converted to a recursive function. kept it here to come back to try to rewrite to use loops
 # post_data = hidden_params.copy()
 # for i in range(len(field_data)):
 #     field, data = field_data[i]
@@ -40,11 +41,9 @@ field_data = ( # like immutable dict so order is preserved
 #     hidden_params = {item["name"]: item.get("value", "") for item in soup.find_all("input", {"type": "hidden"})}
 #     post_data.update(hidden_params)
 
-def explore_field(index, post_data, soup):
-    # soup is only used at exit condition of recursion
-    # with open(f"{index}.html", "w", encoding="utf-8") as f:
-    #     f.write(soup.prettify() if soup else "No soup provided")
 
+# as it turns out, this is a dfs algorithm lmao (really gotta start DSA soon, i couldve made this a lot faster if i knew it and didnt rediscover the wheel)
+def explore_field(index, post_data):
     field, data = field_data[index]
     print(f"Exploring field: {field}, data: {data}, index: {index}")
     post_data = post_data.copy()  # make a copy of post_data to avoid modifying the original
@@ -60,7 +59,7 @@ def explore_field(index, post_data, soup):
         table = pd.read_html(str(table))[0]
         # delete last row from the table if it is empty
         table.dropna(inplace=True, how='all')
-        with open('hhhhhh.csv', 'a', encoding='utf-8') as f:
+        with open('josaa24.csv', 'a', encoding='utf-8') as f:
             table.to_csv(f, index=False, header=False, mode='a')
         return
     
@@ -71,16 +70,19 @@ def explore_field(index, post_data, soup):
         #     print(soup.prettify())
         for item in itemlist:
             post_data.update({field_data[index + 1][0]: item}) # fill data for next call
-            explore_field(index + 1, post_data, soup)
+            explore_field(index + 1, post_data)
             print(f"Explored {field_data[index+1][0]} with value {item}")
     else:
         post_data.update({field_data[index+1][0]: field_data[index+1][1]})
-        explore_field(index+1, post_data, soup) # if definite data, just go to the next field
-    
-    
+        explore_field(index+1, post_data) # if definite data, just go to the next field
+
+
+with open('josaa24.csv', 'w', encoding='utf-8') as f:
+    f.write("Institute,Academic Program Name,Quota,Seat Type,Gender,Opening Rank,Closing Rank\n")  # write header
+# start exploring from the first field
 post_data = hidden_params.copy()
 post_data.update({field_data[0][0]: field_data[0][1]}) # set the first field data. 
-explore_field(0, post_data, "")
+explore_field(0, post_data)
 
     #print(res.text)
 
