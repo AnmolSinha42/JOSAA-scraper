@@ -4,3 +4,7 @@ This project is a web-scraper that accesses the official <a href="https://josaa.
 This was made with the intention to provide an idea of the options available for a candidate at their respective rank and help them to make a better and more well-informed decision for their branch and college.
 
 To access the data, download the file `josaa24.csv`.
+
+### Warning:
+For IITs the ranks diaplayed are the <b>JEE Advance ranks</b> and for all colleges in NIT+ system, <b>JEE Mains ranks</b> are considered
+
