@@ -1,12 +1,12 @@
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
+from io import StringIO
 
 session = requests.Session()
 res = session.get("https://josaa.admissions.nic.in/applicant/seatmatrix/seatmatrixinfo.aspx")
-
 soup = BeautifulSoup(res.text,'html.parser')
-hidden = {item["name"]:item.get("value","") for item in soup.find_all("input",{"type":"hidden"})}
+data = {item["name"]:item.get("value","") for item in soup.find_all("input",{"type":"hidden"})}
 
 
 fields=[
@@ -15,13 +15,9 @@ fields=[
 "ctl00$ContentPlaceHolder1$ddlBranch",
 "ctl00$ContentPlaceHolder1$btnSubmit"]
 
-#get list of options
-inst_type = [item["value"] for item in soup.find("select",{"name":"ctl00$ContentPlaceHolder1$ddlInstType"}).find_all("option")][1:]
-institutes = [item["value"] for item in soup.find("select",{"name":"ctl00$ContentPlaceHolder1$ddlInstitute"}).find_all("option")][1:]
-branches = [item["value"] for item in soup.find("select",{"name":"ctl00$ContentPlaceHolder1$ddlBranch"}).find_all("option")][1:]
-print(inst_type)
-print(institutes)
-print(branches)
+
+
+
 """
 data = {item["name"]:item.get("value","") for item in soup.find_all("input",{"type":"hidden"})}
 data[fields[0]] = "IIT"
@@ -43,25 +39,52 @@ soup = BeautifulSoup(res.text,'html.parser')
 
 print(res.text)
 """
-counter = 0
+
+inst_type = [item["value"] for item in soup.find("select",{"name":"ctl00$ContentPlaceHolder1$ddlInstType"}).find_all("option")][1:]
 for type in inst_type:
+    #find list of institutes
+    data.update({item["name"]:item.get("value","") for item in soup.find_all("input",{"type":"hidden"})})
+    data[fields[0]] = type
+    data["__EVENTTARGET"] = fields[0]
+    res = session.post("https://josaa.admissions.nic.in/applicant/seatmatrix/seatmatrixinfo.aspx",data = data)
+    soup = BeautifulSoup(res.text,'html.parser')
+    institutes = [item["value"] for item in soup.find("select",{"name":"ctl00$ContentPlaceHolder1$ddlInstitute"}).find_all("option")][1:]
+
     for institute in institutes:
+        #find list of branches
+        data.update({item["name"]:item.get("value","") for item in soup.find_all("input",{"type":"hidden"})})
+        data[fields[1]] = institute
+        data["__EVENTTARGET"] = fields[1]
+        res = session.post("https://josaa.admissions.nic.in/applicant/seatmatrix/seatmatrixinfo.aspx",data = data)
+        soup = BeautifulSoup(res.text,'html.parser')
+        branches = [item["value"] for item in soup.find("select",{"name":"ctl00$ContentPlaceHolder1$ddlBranch"}).find_all("option")][1:]
+
         for branch in branches:
-            parameters = [type,institute,branch,"Submit"]
-            for i in range(4):
-                data = {item["name"]:item.get("value","") for item in soup.find_all("input",{"type":"hidden"})}
-                data[fields[i]] = parameters[i]
-                data["__EVENTTARGET"] = fields[i]
-                res = session.post("https://josaa.admissions.nic.in/applicant/seatmatrix/seatmatrixinfo.aspx",data = data)
-                soup = BeautifulSoup(res.text,'html.parser')
+            #put branch
+            data.update({item["name"]:item.get("value","") for item in soup.find_all("input",{"type":"hidden"})})
+            data[fields[2]] = branch
+            data["__EVENTTARGET"] = fields[2]
+            res = session.post("https://josaa.admissions.nic.in/applicant/seatmatrix/seatmatrixinfo.aspx",data = data)
+            soup = BeautifulSoup(res.text,'html.parser')
+                #soup is html consisting of only 1 table
+
+            #submit
+            data.update({item["name"]:item.get("value","") for item in soup.find_all("input",{"type":"hidden"})})
+            data[fields[3]] = "Submit"
+            data["__EVENTTARGET"] = fields[3]
+            res = session.post("https://josaa.admissions.nic.in/applicant/seatmatrix/seatmatrixinfo.aspx",data = data)
+            soup = BeautifulSoup(res.text,'html.parser')
             
-            
-            if counter<3:
-                counter = counter+1
-                with open(f"{counter}.html","w") as f:
-                    f.write(res.text)
-            else:
-                break
+            #put all table data in csv file
+            table = soup.find("table")
+            table = pd.read_html(StringIO(str(table)))[0]
+            # delete last row from the table if it is empty
+            table.dropna(inplace=True, how='all')
+            with open('seat_matrix_25.csv', 'a', encoding='utf-8') as f:
+                table.to_csv(f, index=False, header=False, mode='a')
+
+
+
             
 
 
