@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import pandas as pd
 from io import StringIO
+import csv
 
 session = requests.Session()
 res = session.get("https://josaa.admissions.nic.in/applicant/seatmatrix/seatmatrixinfo.aspx")
@@ -14,31 +15,6 @@ fields=[
 "ctl00$ContentPlaceHolder1$ddlInstitute",
 "ctl00$ContentPlaceHolder1$ddlBranch",
 "ctl00$ContentPlaceHolder1$btnSubmit"]
-
-
-
-
-"""
-data = {item["name"]:item.get("value","") for item in soup.find_all("input",{"type":"hidden"})}
-data[fields[0]] = "IIT"
-data["__EVENTTARGET"] = fields[0]
-res = session.post("https://josaa.admissions.nic.in/applicant/seatmatrix/seatmatrixinfo.aspx",data = data)
-soup = BeautifulSoup(res.text,'html.parser')
-
-data = {item["name"]:item.get("value","") for item in soup.find_all("input",{"type":"hidden"})}
-data[fields[1]] = "121"
-data["__EVENTTARGET"] = fields[1]
-res = session.post("https://josaa.admissions.nic.in/applicant/seatmatrix/seatmatrixinfo.aspx",data = data)
-soup = BeautifulSoup(res.text,'html.parser')
-
-data = {item["name"]:item.get("value","") for item in soup.find_all("input",{"type":"hidden"})}
-data[fields[2]] = "4109"
-data["__EVENTTARGET"] = fields[2]
-res = session.post("https://josaa.admissions.nic.in/applicant/seatmatrix/seatmatrixinfo.aspx",data = data)
-soup = BeautifulSoup(res.text,'html.parser')
-
-print(res.text)
-"""
 
 inst_type = [item["value"] for item in soup.find("select",{"name":"ctl00$ContentPlaceHolder1$ddlInstType"}).find_all("option")][1:]
 for type in inst_type:
@@ -81,6 +57,17 @@ for type in inst_type:
         table.dropna(inplace=True, how='all')
         with open('seat_matrix_25.csv', 'a', encoding='utf-8') as f:
             table.to_csv(f, index=False, header=False, mode='a')
+
+#put a separate file for total seats and programme specific seats to make it easy to navigate and make tables(excel)
+with open("seat_matrix_25.csv","r") as file_1, open("total_seats.csv","w") as file_2, open("programme.csv","w") as file_3:
+    csv_reader = csv.reader(file_1)
+    csv_writer1 = csv.writer(file_2)
+    csv_writer2 = csv.writer(file_3)
+    for row in csv_reader:
+        if row[0] == "":
+            csv_writer1.writerow(row)
+        else:
+            csv_writer2.writerow(row)
 
 
 
