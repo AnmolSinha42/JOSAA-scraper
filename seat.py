@@ -3,7 +3,7 @@ from bs4 import BeautifulSoup
 import pandas as pd
 from io import StringIO
 import csv
-
+"""
 session = requests.Session()
 res = session.get("https://josaa.admissions.nic.in/applicant/seatmatrix/seatmatrixinfo.aspx")
 soup = BeautifulSoup(res.text,'html.parser')
@@ -57,17 +57,22 @@ for type in inst_type:
         table.dropna(inplace=True, how='all')
         with open('seat_matrix_25.csv', 'a', encoding='utf-8') as f:
             table.to_csv(f, index=False, header=False, mode='a')
-
+"""
 #put a separate file for total seats and programme specific seats to make it easy to navigate and make tables(excel)
 with open("seat_matrix_25.csv","r") as file_1, open("total_seats.csv","w") as file_2, open("programme.csv","w") as file_3:
     csv_reader = csv.reader(file_1)
     csv_writer1 = csv.writer(file_2)
     csv_writer2 = csv.writer(file_3)
+    prev_row = []
     for row in csv_reader:
         if row[0] == "":
-            csv_writer1.writerow(row)
+            new_row = [prev_row[0]]
+            new_row.extend(row[3:])
+            csv_writer1.writerow(new_row)
         else:
             csv_writer2.writerow(row)
+        prev_row = row
+        
 
 
 
