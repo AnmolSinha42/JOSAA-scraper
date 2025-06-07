@@ -7,6 +7,6 @@ To access the opening and closing ranks, download the file `josaa24.csv`.
 To access the seat matrix, download the file `seat_matrix_25.xlsx`
 
 ### Warning:
-For IITs the ranks diaplayed are the <b>JEE Advance ranks</b> and for all colleges in NIT+ system, <b>JEE Mains ranks</b> are considered.
-Do <b>not</b> download thev  `seat_matrix_25.csv` as it would be harder to navigate in.
+For IITs the ranks diaplayed are the <b>JEE Advance ranks</b> and for all colleges in NIT+ system, <b>JEE Mains ranks</b> are considered.<br>
+Do <b>not</b> download thev  `seat_matrix_25.csv` as it would be harder to navigate in.<br>
 
